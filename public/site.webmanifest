@@ -1,0 +1,16 @@
+{
+  "name": "DPLUS Creator",
+  "short_name": "DPLUS",
+  "description": "A creative social media agency focused on helping brands grow and stand out online.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#F5A623",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ]
+}
