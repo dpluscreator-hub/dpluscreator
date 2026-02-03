@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { gsap } from "gsap";
@@ -11,12 +11,12 @@ gsap.registerPlugin(ScrollTrigger);
 
 // --- Configuration for easy tuning ---
 const CONFIG = {
-  sensitivity: 0.8,
-  activeWindow: 0.15,
-  blurMax: 15, // Reduced from 20
-  rotateMax: 6, // Reduced from 8
-  scaleMin: 0.88, // Slightly higher for less scaling
-  xOffsetPercent: 100, // Reduced from 120
+  sensitivity: 0.5, // Reduced from 0.8 - faster scrolling
+  activeWindow: 0.12, // Slightly smaller dead zone
+  blurMax: 15,
+  rotateMax: 6,
+  scaleMin: 0.88,
+  xOffsetPercent: 80, // Reduced for quicker transitions
 };
 
 interface Service {
@@ -69,14 +69,6 @@ const services: Service[] = [
 export default function ServicesSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useGSAP(() => {
     const container = containerRef.current;
@@ -86,21 +78,25 @@ export default function ServicesSection() {
     const numSections = sections.length;
     if (numSections === 0) return;
 
-    // --- Setup ---
+    // Check mobile inside GSAP context
+    const mobile = window.innerWidth < 768;
+
+    // --- Simple Setup ---
     gsap.set(container, { perspective: 1000 });
     gsap.set(sections, { 
       position: "absolute", 
       inset: 0, 
-      transformStyle: "preserve-3d",
     });
 
-    // --- Main Scroll Logic ---
+    // --- Main Scroll Logic with higher scrub for smoothness ---
     ScrollTrigger.create({
       trigger: container,
       start: "top top",
       end: `+=${numSections * 100 * CONFIG.sensitivity}%`, 
       pin: true,
-      scrub: isMobile ? 1 : 0.5, // Smoother scrub on mobile
+      scrub: 2.5, // Slightly higher for buttery smooth
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
       onUpdate: (self) => {
         const globalProgress = self.progress * (numSections - 1);
 
@@ -109,14 +105,12 @@ export default function ServicesSection() {
           
           let opacity = 0;
           let scale = 1;
-          let xPercent = 0;
-          let rotateY = 0;
+          let x = 0;
           let zIndex = 0;
 
           if (Math.abs(diff) <= CONFIG.activeWindow) {
              scale = 1;
-             xPercent = 0;
-             rotateY = 0;
+             x = 0;
              opacity = 1;
              zIndex = 100;
           } 
@@ -124,9 +118,8 @@ export default function ServicesSection() {
              const exitProgress = (diff - CONFIG.activeWindow) / (1 - CONFIG.activeWindow);
              
              scale = 1 - (exitProgress * (1 - CONFIG.scaleMin));
-             xPercent = -exitProgress * 15;
-             rotateY = exitProgress * CONFIG.rotateMax;
-             opacity = 1 - exitProgress * 0.5;
+             x = -exitProgress * 100; // Use pixels instead of percent
+             opacity = 1 - exitProgress * 0.6;
              zIndex = 50 - index;
           } 
           else if (diff < -CONFIG.activeWindow) {
@@ -134,26 +127,21 @@ export default function ServicesSection() {
              const clampedEnter = Math.min(1, enterProgress);
 
              scale = 1 - (clampedEnter * (1 - CONFIG.scaleMin));
-             xPercent = clampedEnter * CONFIG.xOffsetPercent;
-             rotateY = -clampedEnter * CONFIG.rotateMax;
+             x = clampedEnter * window.innerWidth * 0.8; // Slide from right
              opacity = Math.max(0, 1 - clampedEnter);
              zIndex = 50 + index; 
           }
 
-          // No blur filter on mobile for performance
-          gsap.set(section, {
-            opacity,
-            scale,
-            xPercent,
-            rotateY,
-            zIndex,
-            pointerEvents: Math.abs(diff) < 0.3 ? "auto" : "none"
-          });
+          // Simple transform with translateZ(0) for GPU layer
+          section.style.transform = `translate3d(${x}px, 0, 0) scale(${scale})`;
+          section.style.opacity = String(opacity);
+          section.style.zIndex = String(zIndex);
+          section.style.pointerEvents = Math.abs(diff) < 0.3 ? "auto" : "none";
         });
       }
     });
 
-  }, { scope: containerRef, dependencies: [isMobile] });
+  }, { scope: containerRef });
 
   return (
     <section className="bg-black relative overflow-hidden" aria-label="Our Services">
@@ -192,7 +180,7 @@ export default function ServicesSection() {
 
 function ServiceCard({ service, index }: { service: Service; index: number }) {
   return (
-    <Link href={`/services/${service.slug}`} className="block w-full max-w-5xl h-full group perspective-1000">
+    <Link href="/services" className="block w-full max-w-5xl h-full group perspective-1000">
       <article className="h-full w-full bg-[#0f0f0f] border border-white/10 rounded-2xl md:rounded-[2rem] overflow-hidden relative shadow-2xl transition-shadow duration-300 group-hover:shadow-purple-900/20">
         
         {/* Mobile: Image on top, Content below */}
