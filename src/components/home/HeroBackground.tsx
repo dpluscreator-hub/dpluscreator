@@ -1,32 +1,59 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-
-gsap.registerPlugin();
 
 export default function HeroBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  useGSAP(() => {
+  useEffect(() => {
+    // Check if mobile
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    // Skip animations on mobile for performance
+    if (isMobile) return;
+    
     const shapes = containerRef.current?.querySelectorAll(".blob-shape");
     if (!shapes) return;
 
+    const animations: gsap.core.Tween[] = [];
+    
     shapes.forEach((shape, index) => {
-      gsap.to(shape, {
-        x: `random(-30, 30)`,
-        y: `random(-30, 30)`,
-        rotation: `random(-15, 15)`,
-        scale: `random(0.9, 1.1)`,
-        duration: gsap.utils.random(8, 12),
+      const anim = gsap.to(shape, {
+        x: `random(-20, 20)`,
+        y: `random(-20, 20)`,
+        rotation: `random(-10, 10)`,
+        duration: gsap.utils.random(10, 15),
         ease: "sine.inOut",
         repeat: -1,
         yoyo: true,
-        delay: index * 0.5,
+        delay: index * 0.8,
       });
+      animations.push(anim);
     });
-  }, { scope: containerRef });
+
+    return () => animations.forEach(anim => anim.kill());
+  }, [isMobile]);
+
+  // Simplified static background for mobile
+  if (isMobile) {
+    return (
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px]">
+          <div className="w-full h-full rounded-full bg-gradient-to-br from-primary/15 via-primary/8 to-transparent blur-[80px]" />
+        </div>
+        <div className="absolute bottom-1/4 right-1/4 w-[250px] h-[250px]">
+          <div className="w-full h-full rounded-full bg-gradient-to-tl from-amber-200/10 to-transparent blur-[60px]" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -82,28 +109,6 @@ export default function HeroBackground() {
           fill="url(#gradient-secondary)"
           filter="url(#blur-filter)"
         />
-
-        <ellipse
-          className="blob-shape"
-          cx="35%"
-          cy="75%"
-          rx="250"
-          ry="200"
-          fill="url(#gradient-primary)"
-          filter="url(#blur-filter-lg)"
-          opacity="0.6"
-        />
-
-        <ellipse
-          className="blob-shape"
-          cx="85%"
-          cy="60%"
-          rx="200"
-          ry="180"
-          fill="url(#gradient-accent)"
-          filter="url(#blur-filter)"
-          opacity="0.5"
-        />
       </svg>
 
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] blob-shape">
@@ -112,10 +117,6 @@ export default function HeroBackground() {
 
       <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] blob-shape">
         <div className="w-full h-full rounded-full bg-gradient-to-tl from-amber-200/15 via-orange-100/10 to-transparent blur-[80px]" />
-      </div>
-
-      <div className="absolute bottom-1/4 left-1/3 w-[350px] h-[350px] blob-shape">
-        <div className="w-full h-full rounded-full bg-gradient-to-tr from-gray-200/20 via-gray-100/10 to-transparent blur-[90px]" />
       </div>
     </div>
   );

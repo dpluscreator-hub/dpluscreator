@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
@@ -14,37 +14,34 @@ export default function HeroSection() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const headlineRef = useRef<HTMLHeadingElement>(null);
-
-  // Parallax scroll transforms
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (!sectionRef.current || !contentRef.current || !headlineRef.current) return;
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    // Skip heavy GSAP animations on mobile
+    if (!sectionRef.current || !contentRef.current || isMobile) return;
 
     const ctx = gsap.context(() => {
-      // Premium zoom + 3D rotation effect
       gsap.to(contentRef.current, {
-        scale: 0.85,
-        rotateX: 5,
-        y: 80,
+        scale: 0.9,
+        y: 60,
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
           end: "80% top",
-          scrub: 1.5,
+          scrub: 2,
         },
       });
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
 
   return (
     <>

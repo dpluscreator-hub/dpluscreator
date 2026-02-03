@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { gsap } from "gsap";
@@ -11,12 +11,12 @@ gsap.registerPlugin(ScrollTrigger);
 
 // --- Configuration for easy tuning ---
 const CONFIG = {
-  sensitivity: 0.8, // Scroll speed (higher = slower) - reduced for faster scrolling
-  activeWindow: 0.15, // "Dead zone" where card stays 100% still for reading
-  blurMax: 20,
-  rotateMax: 8,
-  scaleMin: 0.85,
-  xOffsetPercent: 120, // Initial fly-in distance
+  sensitivity: 0.8,
+  activeWindow: 0.15,
+  blurMax: 15, // Reduced from 20
+  rotateMax: 6, // Reduced from 8
+  scaleMin: 0.88, // Slightly higher for less scaling
+  xOffsetPercent: 100, // Reduced from 120
 };
 
 interface Service {
@@ -69,6 +69,14 @@ const services: Service[] = [
 export default function ServicesSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useGSAP(() => {
     const container = containerRef.current;
@@ -84,7 +92,6 @@ export default function ServicesSection() {
       position: "absolute", 
       inset: 0, 
       transformStyle: "preserve-3d",
-      willChange: "transform, opacity, filter" // Optimization
     });
 
     // --- Main Scroll Logic ---
@@ -93,30 +100,23 @@ export default function ServicesSection() {
       start: "top top",
       end: `+=${numSections * 100 * CONFIG.sensitivity}%`, 
       pin: true,
-      scrub: 0.5, // Momentum: Smooths out choppy mouse-wheel inputs - reduced for smoother feel
+      scrub: isMobile ? 1 : 0.5, // Smoother scrub on mobile
       onUpdate: (self) => {
-        // Calculate continuous position (e.g., 1.45 instead of 1)
         const globalProgress = self.progress * (numSections - 1);
 
         sections.forEach((section, index) => {
-          // 'diff' is the magical value.
-          // 0 = Active Center
-          // 1 = Fully Exited (Left)
-          // -1 = Fully Waiting (Right)
           const diff = globalProgress - index;
           
           let opacity = 0;
           let scale = 1;
           let xPercent = 0;
           let rotateY = 0;
-          let blur = 0;
           let zIndex = 0;
 
           if (Math.abs(diff) <= CONFIG.activeWindow) {
              scale = 1;
              xPercent = 0;
              rotateY = 0;
-             blur = 0;
              opacity = 1;
              zIndex = 100;
           } 
@@ -126,7 +126,6 @@ export default function ServicesSection() {
              scale = 1 - (exitProgress * (1 - CONFIG.scaleMin));
              xPercent = -exitProgress * 15;
              rotateY = exitProgress * CONFIG.rotateMax;
-             blur = exitProgress * CONFIG.blurMax;
              opacity = 1 - exitProgress * 0.5;
              zIndex = 50 - index;
           } 
@@ -137,17 +136,16 @@ export default function ServicesSection() {
              scale = 1 - (clampedEnter * (1 - CONFIG.scaleMin));
              xPercent = clampedEnter * CONFIG.xOffsetPercent;
              rotateY = -clampedEnter * CONFIG.rotateMax;
-             blur = clampedEnter * CONFIG.blurMax;
              opacity = Math.max(0, 1 - clampedEnter);
              zIndex = 50 + index; 
           }
 
+          // No blur filter on mobile for performance
           gsap.set(section, {
             opacity,
             scale,
             xPercent,
             rotateY,
-            filter: blur > 0.5 ? `blur(${blur}px)` : "none",
             zIndex,
             pointerEvents: Math.abs(diff) < 0.3 ? "auto" : "none"
           });
@@ -155,7 +153,7 @@ export default function ServicesSection() {
       }
     });
 
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [isMobile] });
 
   return (
     <section className="bg-black relative overflow-hidden" aria-label="Our Services">

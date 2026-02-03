@@ -2,7 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 
@@ -38,53 +38,55 @@ const workCategories = [
   },
 ];
 
-// Word component for text reveal animation
-function Word({ 
-  children, 
-  progress, 
-  range 
-}: { 
-  children: string; 
-  progress: ReturnType<typeof useScroll>["scrollYProgress"]; 
-  range: [number, number];
-}) {
-  const opacity = useTransform(progress, range, [0.15, 1]);
-  
+// Lazy Video Component - Only loads when in viewport
+function LazyVideo({ src, className }: { src: string; className?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "100px" }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <span className="relative mr-[0.3em] inline-block">
-      <span className="opacity-15">{children}</span>
-      <motion.span 
-        style={{ opacity }} 
-        className="absolute left-0 top-0"
-      >
-        {children}
-      </motion.span>
-    </span>
+    <video
+      ref={videoRef}
+      src={isInView ? src : undefined}
+      autoPlay={isInView}
+      loop
+      muted
+      playsInline
+      className={className}
+      preload="none"
+    />
   );
 }
 
-// Paragraph reveal with word-by-word animation
+// Simplified paragraph component - no per-word animation on mobile
 function ParagraphReveal({ text, className }: { text: string; className?: string }) {
-  const container = useRef<HTMLParagraphElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: container,
-    offset: ["start 0.9", "start 0.4"],
-  });
-
-  const words = text.split(" ");
-
   return (
-    <p ref={container} className={`flex flex-wrap ${className}`}>
-      {words.map((word, i) => {
-        const start = i / words.length;
-        const end = start + 1 / words.length;
-        return (
-          <Word key={i} progress={scrollYProgress} range={[start, end]}>
-            {word}
-          </Word>
-        );
-      })}
-    </p>
+    <motion.p 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className={className}
+    >
+      {text}
+    </motion.p>
   );
 }
 
@@ -92,17 +94,25 @@ export default function ProjectShowcase() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Header parallax effect
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Header parallax effect - disabled on mobile
   const { scrollYProgress: headerProgress } = useScroll({
     target: headerRef,
     offset: ["start end", "end start"],
   });
   
-  const headerY = useTransform(headerProgress, [0, 1], [0, -100]);
+  const headerY = useTransform(headerProgress, [0, 1], [0, isMobile ? 0 : -100]);
   const headerOpacity = useTransform(headerProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0.5]);
 
-  // GSAP animations for cards with ScrollTrigger zoom effect
+  // GSAP animations - simplified for mobile
   useEffect(() => {
     if (!sectionRef.current) return;
 
@@ -112,81 +122,97 @@ export default function ProjectShowcase() {
 
         const video = card.querySelector("video");
         const content = card.querySelector(".card-content");
-        const isReversed = index % 2 === 1;
 
-        // Card entrance with 3D effect
-        gsap.fromTo(
-          card,
-          {
-            opacity: 0,
-            y: 120,
-            rotationX: 10,
-            scale: 0.9,
-          },
-          {
-            opacity: 1,
-            y: 0,
-            rotationX: 0,
-            scale: 1,
-            duration: 1.2,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top 90%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-
-        // Video zoom on scroll (ScrollTrigger Image Zoom effect)
-        if (video) {
+        // Simple fade-in for mobile, full animation for desktop
+        if (isMobile) {
           gsap.fromTo(
-            video,
-            { scale: 1.3, filter: "brightness(0.8)" },
+            card,
+            { opacity: 0, y: 40 },
             {
-              scale: 1,
-              filter: "brightness(1)",
-              ease: "none",
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power2.out",
               scrollTrigger: {
                 trigger: card,
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 1.5,
+                start: "top 90%",
+                toggleActions: "play none none none",
               },
             }
           );
-        }
-
-        // Content slide animation with stagger
-        if (content) {
-          const contentChildren = content.children;
+        } else {
+          // Full 3D animation for desktop
           gsap.fromTo(
-            contentChildren,
+            card,
             {
-              x: isReversed ? 80 : -80,
               opacity: 0,
-              filter: "blur(10px)",
+              y: 120,
+              rotationX: 10,
+              scale: 0.9,
             },
             {
-              x: 0,
               opacity: 1,
-              filter: "blur(0px)",
-              duration: 0.8,
-              stagger: 0.1,
+              y: 0,
+              rotationX: 0,
+              scale: 1,
+              duration: 1.2,
               ease: "power3.out",
               scrollTrigger: {
                 trigger: card,
-                start: "top 80%",
+                start: "top 90%",
                 toggleActions: "play none none reverse",
               },
             }
           );
+
+          // Video zoom on scroll - desktop only
+          if (video) {
+            gsap.fromTo(
+              video,
+              { scale: 1.2 },
+              {
+                scale: 1,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: card,
+                  start: "top bottom",
+                  end: "bottom top",
+                  scrub: 2,
+                },
+              }
+            );
+          }
+
+          // Content slide animation - desktop only
+          if (content) {
+            const isReversed = index % 2 === 1;
+            const contentChildren = content.children;
+            gsap.fromTo(
+              contentChildren,
+              {
+                x: isReversed ? 60 : -60,
+                opacity: 0,
+              },
+              {
+                x: 0,
+                opacity: 1,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power3.out",
+                scrollTrigger: {
+                  trigger: card,
+                  start: "top 80%",
+                  toggleActions: "play none none reverse",
+                },
+              }
+            );
+          }
         }
       });
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
 
   return (
     <section
@@ -276,12 +302,8 @@ export default function ProjectShowcase() {
                   <div className="flex justify-center lg:justify-end w-full">
                     <div className="relative group/video w-[200px] sm:w-[220px] md:w-[250px] lg:w-[280px]">
                       <div className="relative aspect-[9/16] rounded-2xl overflow-hidden shadow-xl bg-dark">
-                        <video
+                        <LazyVideo
                           src={category.videoUrl}
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
                           className="absolute inset-0 w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-dark/70 via-transparent to-transparent opacity-0 group-hover/video:opacity-100 transition-opacity duration-500" />
@@ -358,12 +380,8 @@ export default function ProjectShowcase() {
                 <div className={`lg:col-span-7 ${index % 2 === 1 ? "lg:col-start-1 lg:row-start-1" : ""}`}>
                   <div className="relative group/video">
                     <div className="relative h-[250px] md:h-[320px] lg:h-[380px] rounded-2xl overflow-hidden shadow-xl bg-dark">
-                      <video
+                      <LazyVideo
                         src={category.videoUrl}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-dark/70 via-transparent to-transparent opacity-0 group-hover/video:opacity-100 transition-opacity duration-500" />
