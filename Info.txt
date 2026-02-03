@@ -1,0 +1,67 @@
+Stack: Next.js 16, React 19, TypeScript, Tailwind CSS, Framer Motion
+Node: Use latest LTS
+
+
+FOLDER STRUCTURE
+----------------
+src/
+├── app/                  → Next.js App Router (pages live here)
+│   ├── layout.tsx        → Root layout (fonts, navbar, footer, SEO meta)
+│   ├── page.tsx          → Homepage
+│   ├── about/            → /about
+│   ├── contact/          → /contact
+│   ├── services/         → /services
+│   ├── team/             → /team
+│   └── api/contact/      → Contact form API endpoint
+│
+├── components/
+│   ├── layout/           → Navbar.tsx, Footer.tsx
+│   ├── home/             → HeroSection.tsx, ServicesSection.tsx
+│   ├── BookMeetingModal.tsx
+│   ├── ContactForm.tsx
+│   └── VideoModal.tsx
+
+public/                   → Static files (favicon, manifest, sitemap)
+assets/                   → Media assets
+
+---
+
+API ENDPOINT
+------------
+POST /api/contact
+- Saves form data to Google Sheets
+- Rate limited: 5 req/min per IP
+- Requires env vars:
+    GOOGLE_SERVICE_ACCOUNT_EMAIL
+    GOOGLE_PRIVATE_KEY
+    GOOGLE_SHEET_ID
+
+---
+
+STYLING
+-------
+Tailwind config:
+- primary: #F5A623 (orange)
+- secondary: #F3E6D3 (cream)
+- dark: #1A1A1A
+- light: #F8F8F8
+
+Fonts: Inter (body), Space Grotesk (headings), Poppins
+
+---
+
+NOTES
+-----
+- All animations use Framer Motion
+- SEO configured in layout.tsx (metadata object)
+- Domain: dpluscreator.com
+- sitemap.xml and robots.txt in public/
+
+---
+
+ENV VARS NEEDED
+---------------
+GOOGLE_SERVICE_ACCOUNT_EMAIL=xxx
+GOOGLE_PRIVATE_KEY=xxx
+GOOGLE_SHEET_ID=xxx
+

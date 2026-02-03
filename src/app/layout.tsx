@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk, Poppins } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -86,6 +87,16 @@ export default function RootLayout({
         <Navbar />
         <main>{children}</main>
         <Footer />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: '#1A1A1A',
+              color: '#fff',
+              border: '1px solid rgba(245, 166, 35, 0.2)',
+            },
+          }}
+        />
         <div id="modal-root" />
       </body>
     </html>
