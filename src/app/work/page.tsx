@@ -112,7 +112,7 @@ export default function WorkPage() {
       </section>
 
       {/* Filter Section */}
-      <section className="py-12 bg-white border-b sticky top-20 z-40 shadow-sm">
+      <section className="py-12 border-b sticky top-20 z-40 shadow-sm bg-[#FBF7F0]">
         <div className="container mx-auto px-6">
           <div className="flex flex-wrap items-center justify-center gap-4">
             {categories.map((category) => (
@@ -122,7 +122,7 @@ export default function WorkPage() {
                 className={`px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
                   filter === category
                     ? "bg-dark text-white shadow-lg scale-105"
-                    : "bg-gray-100 text-dark hover:bg-gray-200"
+                    : "bg-white/50 text-dark hover:bg-white/80"
                 }`}
               >
                 {category}
@@ -133,7 +133,7 @@ export default function WorkPage() {
       </section>
 
       {/* Projects Grid */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20">
         <div className="container mx-auto px-6">
           <motion.div
             layout
@@ -227,7 +227,7 @@ export default function WorkPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20">
         <div className="container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 40 }}

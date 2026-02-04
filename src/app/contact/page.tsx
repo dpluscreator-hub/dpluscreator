@@ -23,7 +23,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <section className="py-20 bg-white">
+      <section className="py-20">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             <motion.div

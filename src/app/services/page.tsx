@@ -95,7 +95,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <section className="py-20 bg-white">
+      <section className="py-20">
         <div className="container mx-auto px-6">
           <div className="space-y-32">
             {allServices.map((service, index) => (

@@ -26,7 +26,7 @@ export default function AboutPage() {
       </section>
 
       {/* Who We Are */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-16 md:py-20">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto">
             <motion.div
@@ -69,7 +69,7 @@ export default function AboutPage() {
       </section>
 
       {/* What Makes Us Different */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-16 md:py-20">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto">
             <motion.div

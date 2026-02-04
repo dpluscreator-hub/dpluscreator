@@ -218,7 +218,7 @@ export default function ProjectShowcase() {
     <section
       ref={sectionRef}
       aria-label="Our Work"
-      className="relative py-10 md:py-16 lg:py-20 bg-[#FAFAFA] overflow-hidden"
+      className="relative py-10 md:py-16 lg:py-20 overflow-hidden"
       style={{ perspective: "1000px" }}
     >
       {/* Ambient Background with subtle movement */}

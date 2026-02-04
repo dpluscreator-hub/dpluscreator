@@ -22,13 +22,12 @@ export default function Navbar() {
   const [isInDarkSection, setIsInDarkSection] = useState(false);
   const pathname = usePathname();
 
-  const isDarkPage = pathname === '/services' || pathname === '/team';
-
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsScrolled(scrollY > 20);
 
+      // Check for dark section (only on homepage)
       const servicesSection = document.querySelector('[aria-label="Our Services"]');
       const navbarBottom = 80;
 
@@ -46,7 +45,8 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const showLightNav = !isScrolled && (isDarkPage || isInDarkSection);
+  // Show light nav only when in dark section on homepage
+  const showLightNav = !isScrolled && isInDarkSection;
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -62,16 +62,14 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
-          ? "bg-white/95 backdrop-blur-xl shadow-lg py-2.5"
-          : isDarkPage
-            ? "bg-transparent py-4 lg:py-5"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          isScrolled
+            ? "bg-white/95 backdrop-blur-xl shadow-lg py-2.5"
             : "bg-transparent py-4 lg:py-5"
-          }`}
+        }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between relative">
-            {/* Desktop aur normal layout EXACTLY pehle jaisa */}
             <Link href="/" className="z-20 relative">
               <AnimatedLogo
                 className="h-7 sm:h-8 lg:h-9 w-auto"
@@ -80,28 +78,30 @@ export default function Navbar() {
             </Link>
 
             <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2">
-              <div className={`flex items-center gap-1 px-2 py-2 rounded-full transition-all duration-500 ${isScrolled 
-                ? "bg-gray-100/80 backdrop-blur-sm shadow-sm" 
-                : showLightNav
-                  ? "bg-white/10 backdrop-blur-sm"
-                  : "bg-dark/5 backdrop-blur-sm"
+              <div className={`flex items-center gap-1 px-2 py-2 rounded-full transition-all duration-500 ${
+                isScrolled 
+                  ? "bg-gray-100/80 backdrop-blur-sm shadow-sm" 
+                  : showLightNav
+                    ? "bg-white/10 backdrop-blur-sm"
+                    : "bg-dark/5 backdrop-blur-sm"
               }`}>
                 {navLinks.map((link) => (
                   <Link
                     key={link.path}
                     href={link.path}
-                    className={`px-4 py-2 rounded-full text-[14px] font-medium transition-all duration-300 relative ${pathname === link.path
-                      ? isScrolled 
-                        ? "bg-dark text-white"
-                        : showLightNav
-                          ? "bg-white text-dark"
-                          : "bg-dark text-white"
-                      : isScrolled
-                        ? "text-dark/70 hover:text-dark hover:bg-gray-200/50"
-                        : showLightNav
-                          ? "text-white/80 hover:text-white hover:bg-white/10"
-                          : "text-dark/70 hover:text-dark hover:bg-dark/5"
-                      }`}
+                    className={`px-4 py-2 rounded-full text-[14px] font-medium transition-all duration-300 relative ${
+                      pathname === link.path
+                        ? isScrolled 
+                          ? "bg-dark text-white"
+                          : showLightNav
+                            ? "bg-white text-dark"
+                            : "bg-dark text-white"
+                        : isScrolled
+                          ? "text-dark/70 hover:text-dark hover:bg-gray-200/50"
+                          : showLightNav
+                            ? "text-white/80 hover:text-white hover:bg-white/10"
+                            : "text-dark/70 hover:text-dark hover:bg-dark/5"
+                    }`}
                   >
                     {link.name}
                   </Link>

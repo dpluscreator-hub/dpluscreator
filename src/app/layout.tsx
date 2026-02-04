@@ -83,7 +83,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${spaceGrotesk.variable} ${poppins.variable} font-sans antialiased bg-light text-dark`}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${poppins.variable} font-sans antialiased text-dark`}>
         <Navbar />
         <main>{children}</main>
         <Footer />

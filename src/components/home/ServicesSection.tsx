@@ -88,15 +88,45 @@ export default function ServicesSection() {
       inset: 0, 
     });
 
+    // Initialize ALL cards explicitly before ScrollTrigger starts
+    sections.forEach((section, index) => {
+      if (index === 0) {
+        // First card: fully visible in center
+        gsap.set(section, {
+          x: 0,
+          scale: 1,
+          opacity: 1,
+          zIndex: 100,
+        });
+        section.style.pointerEvents = 'auto';
+      } else {
+        // Other cards: hidden off to the right
+        gsap.set(section, {
+          x: window.innerWidth * 0.8,
+          scale: CONFIG.scaleMin,
+          opacity: 0,
+          zIndex: 50 + index,
+        });
+        section.style.pointerEvents = 'none';
+      }
+    });
+
     // --- Main Scroll Logic with higher scrub for smoothness ---
     ScrollTrigger.create({
       trigger: container,
       start: "top top",
       end: `+=${numSections * 100 * CONFIG.sensitivity}%`, 
       pin: true,
-      scrub: 2.5, // Slightly higher for buttery smooth
+      scrub: 2.5,
       anticipatePin: 1,
       invalidateOnRefresh: true,
+      onEnter: () => {
+        // Ensure first card is visible when entering the section
+        if (sections[0]) {
+          gsap.set(sections[0], { x: 0, scale: 1, opacity: 1, zIndex: 100 });
+          sections[0].style.pointerEvents = 'auto';
+        }
+      },
       onUpdate: (self) => {
         const globalProgress = self.progress * (numSections - 1);
 
@@ -118,7 +148,7 @@ export default function ServicesSection() {
              const exitProgress = (diff - CONFIG.activeWindow) / (1 - CONFIG.activeWindow);
              
              scale = 1 - (exitProgress * (1 - CONFIG.scaleMin));
-             x = -exitProgress * 100; // Use pixels instead of percent
+             x = -exitProgress * 100;
              opacity = 1 - exitProgress * 0.6;
              zIndex = 50 - index;
           } 
@@ -127,15 +157,18 @@ export default function ServicesSection() {
              const clampedEnter = Math.min(1, enterProgress);
 
              scale = 1 - (clampedEnter * (1 - CONFIG.scaleMin));
-             x = clampedEnter * window.innerWidth * 0.8; // Slide from right
+             x = clampedEnter * window.innerWidth * 0.8;
              opacity = Math.max(0, 1 - clampedEnter);
              zIndex = 50 + index; 
           }
 
-          // Simple transform with translateZ(0) for GPU layer
-          section.style.transform = `translate3d(${x}px, 0, 0) scale(${scale})`;
-          section.style.opacity = String(opacity);
-          section.style.zIndex = String(zIndex);
+          // Use GSAP to set transforms for consistency
+          gsap.set(section, {
+            x: x,
+            scale: scale,
+            opacity: opacity,
+            zIndex: zIndex,
+          });
           section.style.pointerEvents = Math.abs(diff) < 0.3 ? "auto" : "none";
         });
       }

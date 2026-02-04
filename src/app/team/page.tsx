@@ -44,7 +44,7 @@ export default function TeamPage() {
       </section>
 
       {/* Team Grid */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-16 md:py-20">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
             {teamMembers.map((member, index) => (
