@@ -24,18 +24,19 @@ export default function HeroSection() {
   }, []);
 
   useEffect(() => {
-    // Skip heavy GSAP animations on mobile
-    if (!sectionRef.current || !contentRef.current || isMobile) return;
+    if (!sectionRef.current || !contentRef.current) return;
 
     const ctx = gsap.context(() => {
       gsap.to(contentRef.current, {
-        scale: 0.9,
-        y: 60,
+        scale: isMobile ? 0.95 : 0.9,
+        y: isMobile ? 30 : 60,
+        duration: isMobile ? 1 : 1.2,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: "80% top",
-          scrub: 2,
+          end: isMobile ? "60% top" : "80% top",
+          scrub: isMobile ? 0.8 : 1,
         },
       });
     }, sectionRef);
