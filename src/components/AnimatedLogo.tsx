@@ -12,12 +12,32 @@ export default function AnimatedLogo({ className = "", variant = "auto" }: Anima
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    let rafId: number | null = null;
+    let lastScrollY = 0;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (rafId !== null) return; // Throttle
+      
+      rafId = requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        
+        // Only update if scroll changed significantly
+        if (Math.abs(scrollY - lastScrollY) > 10) {
+          lastScrollY = scrollY;
+          setIsScrolled(scrollY > 20);
+        }
+        
+        rafId = null;
+      });
     };
-    window.addEventListener("scroll", handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   useEffect(() => {

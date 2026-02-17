@@ -1,16 +1,19 @@
 "use client";
 
-import { useRef, useEffect, ReactNode } from "react";
+import { useRef, useLayoutEffect, useEffect, ReactNode } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+
+// Safe layout effect for SSR environments (Next.js)
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 gsap.registerPlugin(ScrollTrigger);
 
 interface ScrollZoomProps {
   children: ReactNode;
   className?: string;
-  zoomIn?: boolean; // true = zoom in on scroll, false = zoom out
-  intensity?: number; // 0.1 to 0.5
+  zoomIn?: boolean;
+  intensity?: number;
 }
 
 export function ScrollZoom({ 
@@ -22,7 +25,7 @@ export function ScrollZoom({
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!containerRef.current || !contentRef.current) return;
 
     const startScale = zoomIn ? 1 - intensity : 1;
@@ -36,11 +39,12 @@ export function ScrollZoom({
           scale: endScale,
           opacity: zoomIn ? 1 : 0.3,
           ease: "none",
+          force3D: true, // GPU Acceleration
           scrollTrigger: {
             trigger: containerRef.current,
             start: "top bottom",
             end: "bottom top",
-            scrub: 1.5,
+            scrub: true, // Instant response, no lag
           },
         }
       );
@@ -51,7 +55,7 @@ export function ScrollZoom({
 
   return (
     <div ref={containerRef} className={className}>
-      <div ref={contentRef} style={{ willChange: "transform" }}>
+      <div ref={contentRef} style={{ willChange: "transform, opacity" }}>
         {children}
       </div>
     </div>
@@ -60,7 +64,7 @@ export function ScrollZoom({
 
 interface ParallaxProps {
   children: ReactNode;
-  speed?: number; // -1 to 1 (negative = opposite direction)
+  speed?: number;
   className?: string;
 }
 
@@ -68,18 +72,19 @@ export function Parallax({ children, speed = 0.5, className = "" }: ParallaxProp
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!containerRef.current || !contentRef.current) return;
 
     const ctx = gsap.context(() => {
       gsap.to(contentRef.current, {
-        y: () => speed * 200,
+        y: () => speed * 100, // Reduced distance slightly for smoother reflow
         ease: "none",
+        force3D: true, // GPU Acceleration
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top bottom",
           end: "bottom top",
-          scrub: true,
+          scrub: true, // Instant response
         },
       });
     }, containerRef);
@@ -105,31 +110,35 @@ interface MagneticProps {
 export function Magnetic({ children, className = "", strength = 0.3 }: MagneticProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!containerRef.current) return;
 
     const el = containerRef.current;
+    
+    // OPTIMIZATION: Use quickTo for high-frequency updates (mouse movement)
+    // This prevents creating a new Tween object every single frame
+    const xTo = gsap.quickTo(el, "x", { duration: 0.3, ease: "power2.out" });
+    const yTo = gsap.quickTo(el, "y", { duration: 0.3, ease: "power2.out" });
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left - rect.width / 2;
       const y = e.clientY - rect.top - rect.height / 2;
 
-      gsap.to(el, {
-        x: x * strength,
-        y: y * strength,
-        duration: 0.3,
-        ease: "power2.out",
-      });
+      // Pipe values directly to the optimized tween
+      xTo(x * strength);
+      yTo(y * strength);
     };
 
     const handleMouseLeave = () => {
-      gsap.to(el, {
-        x: 0,
-        y: 0,
-        duration: 0.5,
-        ease: "elastic.out(1, 0.5)",
-      });
+        // We can keep standard to() here since it only happens once
+        gsap.to(el, {
+            x: 0,
+            y: 0,
+            duration: 0.5,
+            ease: "elastic.out(1, 0.5)",
+            force3D: true
+        });
     };
 
     el.addEventListener("mousemove", handleMouseMove);
@@ -162,7 +171,7 @@ export function SplitTextReveal({
   const containerRef = useRef<HTMLDivElement>(null);
   const charsRef = useRef<HTMLSpanElement[]>([]);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!containerRef.current || charsRef.current.length === 0) return;
 
     const ctx = gsap.context(() => {
@@ -173,6 +182,7 @@ export function SplitTextReveal({
         stagger: stagger,
         duration: 0.8,
         ease: "back.out(1.7)",
+        force3D: true, // GPU Acceleration
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top 85%",
@@ -199,6 +209,7 @@ export function SplitTextReveal({
           className="inline-block"
           style={{ 
             transformStyle: "preserve-3d",
+            willChange: "transform, opacity", // Hint to browser
             display: char === " " ? "inline" : "inline-block",
           }}
         >

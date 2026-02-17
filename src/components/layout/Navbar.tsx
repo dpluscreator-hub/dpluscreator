@@ -23,26 +23,44 @@ export default function Navbar() {
   const pathname = usePathname();
 
   useEffect(() => {
+    let rafId: number | null = null;
+    let lastScrollY = 0;
+
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 20);
+      if (rafId !== null) return; // Throttle: skip if already scheduled
+      
+      rafId = requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        
+        // Only update if scroll changed significantly
+        if (Math.abs(scrollY - lastScrollY) > 5) {
+          lastScrollY = scrollY;
+          setIsScrolled(scrollY > 20);
 
-      // Check for dark section (only on homepage)
-      const servicesSection = document.querySelector('[aria-label="Our Services"]');
-      const navbarBottom = 80;
+          // Check for dark section (only on homepage)
+          const servicesSection = document.querySelector('[aria-label="Our Services"]');
+          const navbarBottom = 80;
 
-      if (servicesSection) {
-        const rect = servicesSection.getBoundingClientRect();
-        const inDark = rect.top < navbarBottom && rect.bottom > navbarBottom;
-        setIsInDarkSection(inDark);
-      } else {
-        setIsInDarkSection(false);
-      }
+          if (servicesSection) {
+            const rect = servicesSection.getBoundingClientRect();
+            const inDark = rect.top < navbarBottom && rect.bottom > navbarBottom;
+            setIsInDarkSection(inDark);
+          } else {
+            setIsInDarkSection(false);
+          }
+        }
+        
+        rafId = null; // Reset for next scroll event
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // Show light nav only when in dark section on homepage

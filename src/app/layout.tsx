@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Toaster } from "sonner";
+import { SmoothScroll } from "@/components/ui/SmoothScroll";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -84,6 +85,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} ${spaceGrotesk.variable} ${poppins.variable} font-sans antialiased text-dark`}>
+        <SmoothScroll />
         <Navbar />
         <main>{children}</main>
         <Footer />

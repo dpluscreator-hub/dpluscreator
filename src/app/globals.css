@@ -20,7 +20,7 @@
     min-height: 100vh;
   }
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto !important; /* Let GSAP/Lenis handle smoothness */
   }
   
   /* Better heading rendering */
@@ -122,9 +122,6 @@
 
 /* Optimize scrolling performance */
 @media (max-width: 768px) {
-  html {
-    scroll-behavior: auto;
-  }
   
   /* Disable backdrop blur on mobile for performance */
   .backdrop-blur-sm,
