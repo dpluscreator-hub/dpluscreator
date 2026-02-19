@@ -25,6 +25,8 @@ export default function Navbar() {
   useEffect(() => {
     let rafId: number | null = null;
     let lastScrollY = 0;
+    let lastScrolledState = false;
+    let lastDarkState = false;
 
     const handleScroll = () => {
       if (rafId !== null) return; // Throttle: skip if already scheduled
@@ -33,9 +35,15 @@ export default function Navbar() {
         const scrollY = window.scrollY;
         
         // Only update if scroll changed significantly
-        if (Math.abs(scrollY - lastScrollY) > 5) {
+        if (Math.abs(scrollY - lastScrollY) > 10) {
           lastScrollY = scrollY;
-          setIsScrolled(scrollY > 20);
+          const newScrolledState = scrollY > 20;
+          
+          // Only update state if it actually changed
+          if (newScrolledState !== lastScrolledState) {
+            lastScrolledState = newScrolledState;
+            setIsScrolled(newScrolledState);
+          }
 
           // Check for dark section (only on homepage)
           const servicesSection = document.querySelector('[aria-label="Our Services"]');
@@ -44,8 +52,14 @@ export default function Navbar() {
           if (servicesSection) {
             const rect = servicesSection.getBoundingClientRect();
             const inDark = rect.top < navbarBottom && rect.bottom > navbarBottom;
-            setIsInDarkSection(inDark);
-          } else {
+            
+            // Only update if state changed
+            if (inDark !== lastDarkState) {
+              lastDarkState = inDark;
+              setIsInDarkSection(inDark);
+            }
+          } else if (lastDarkState) {
+            lastDarkState = false;
             setIsInDarkSection(false);
           }
         }

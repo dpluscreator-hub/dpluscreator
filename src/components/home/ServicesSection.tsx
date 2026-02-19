@@ -7,7 +7,9 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 // --- Configuration for easy tuning ---
 const CONFIG = {
@@ -96,59 +98,51 @@ export default function ServicesSection() {
 
     // Initialize ALL cards explicitly before ScrollTrigger starts
     sections.forEach((section, index) => {
+      // Enable GPU acceleration
+      section.style.willChange = 'transform, opacity';
+      section.style.backfaceVisibility = 'hidden';
+      
       if (index === 0) {
         // First card: fully visible in center
-        gsap.set(section, {
-          x: 0,
-          scale: 1,
-          opacity: 1,
-          zIndex: 100,
-        });
+        section.style.transform = 'translate3d(0, 0, 0) scale(1)';
+        section.style.opacity = '1';
+        section.style.zIndex = '100';
         section.style.pointerEvents = 'auto';
       } else {
         // Other cards: hidden off to the right
-        gsap.set(section, {
-          x: window.innerWidth * 0.8,
-          scale: CONFIG.scaleMin,
-          opacity: 0,
-          zIndex: 50 + index,
-        });
+        section.style.transform = `translate3d(${window.innerWidth * 0.8}px, 0, 0) scale(${CONFIG.scaleMin})`;
+        section.style.opacity = '0';
+        section.style.zIndex = String(50 + index);
         section.style.pointerEvents = 'none';
       }
     });
 
-    // --- Main Scroll Logic with higher scrub for smoothness ---
+    // --- Main Scroll Logic with optimized scrub for fast scrolling ---
     ScrollTrigger.create({
       trigger: container,
       start: "top top",
       end: `+=${numSections * 100 * CONFIG.sensitivity}%`, 
       pin: true,
-      scrub: 2.5,
+      scrub: 1.2, // Reduced from 2.5 for faster response
       anticipatePin: 1,
       invalidateOnRefresh: true,
-      onEnter: () => {
-        // Ensure first card is visible when entering the section
-        if (sections[0]) {
-          gsap.set(sections[0], { x: 0, scale: 1, opacity: 1, zIndex: 100 });
-          sections[0].style.pointerEvents = 'auto';
-        }
-      },
+      fastScrollEnd: true, // Fast scroll optimization
       onUpdate: (self) => {
         const globalProgress = self.progress * (numSections - 1);
+        const windowWidth = window.innerWidth;
 
         sections.forEach((section, index) => {
           const diff = globalProgress - index;
+          const absDiff = Math.abs(diff);
           
-          let opacity = 0;
-          let scale = 1;
-          let x = 0;
-          let zIndex = 0;
+          let opacity, scale, x, zIndex;
 
-          if (Math.abs(diff) <= CONFIG.activeWindow) {
+          if (absDiff <= CONFIG.activeWindow) {
              scale = 1;
              x = 0;
              opacity = 1;
              zIndex = 100;
+             section.style.pointerEvents = 'auto';
           } 
           else if (diff > CONFIG.activeWindow) {
              const exitProgress = (diff - CONFIG.activeWindow) / (1 - CONFIG.activeWindow);
@@ -157,25 +151,23 @@ export default function ServicesSection() {
              x = -exitProgress * 100;
              opacity = 1 - exitProgress * 0.6;
              zIndex = 50 - index;
+             section.style.pointerEvents = 'none';
           } 
-          else if (diff < -CONFIG.activeWindow) {
-             const enterProgress = (Math.abs(diff) - CONFIG.activeWindow) / (1 - CONFIG.activeWindow);
+          else {
+             const enterProgress = (absDiff - CONFIG.activeWindow) / (1 - CONFIG.activeWindow);
              const clampedEnter = Math.min(1, enterProgress);
 
              scale = 1 - (clampedEnter * (1 - CONFIG.scaleMin));
-             x = clampedEnter * window.innerWidth * 0.8;
+             x = clampedEnter * windowWidth * 0.8;
              opacity = Math.max(0, 1 - clampedEnter);
-             zIndex = 50 + index; 
+             zIndex = 50 + index;
+             section.style.pointerEvents = 'none';
           }
 
-          // Use GSAP to set transforms for consistency
-          gsap.set(section, {
-            x: x,
-            scale: scale,
-            opacity: opacity,
-            zIndex: zIndex,
-          });
-          section.style.pointerEvents = Math.abs(diff) < 0.3 ? "auto" : "none";
+          // Direct style manipulation for better performance during fast scroll
+          section.style.transform = `translate3d(${x}px, 0, 0) scale(${scale})`;
+          section.style.opacity = String(opacity);
+          section.style.zIndex = String(zIndex);
         });
       }
     });

@@ -44,7 +44,7 @@ export function ScrollZoom({
             trigger: containerRef.current,
             start: "top bottom",
             end: "bottom top",
-            scrub: true, // Instant response, no lag
+            scrub: 0.5, // Small lag for smoothness but responsive
           },
         }
       );
@@ -84,7 +84,7 @@ export function Parallax({ children, speed = 0.5, className = "" }: ParallaxProp
           trigger: containerRef.current,
           start: "top bottom",
           end: "bottom top",
-          scrub: true, // Instant response
+          scrub: 0.5, // Small lag for smoothness but responsive
         },
       });
     }, containerRef);

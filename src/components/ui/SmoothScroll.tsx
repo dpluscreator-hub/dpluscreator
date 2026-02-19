@@ -5,31 +5,47 @@ import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 
+// Register ScrollTrigger plugin
+gsap.registerPlugin(ScrollTrigger);
+
 export function SmoothScroll() {
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 0.6,
-      easing: (t) => 1 - Math.pow(1 - t, 3),
+      duration: 0.8, // Reduced for faster response
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       wheelMultiplier: 1,
+      touchMultiplier: 2,
+      infinite: false,
     });
 
-    // Synchronize Lenis scroll with GSAP's ScrollTrigger
-    lenis.on('scroll', ScrollTrigger.update);
+    // Store the RAF callback so we can properly remove it later
+    const rafCallback = (time: number) => {
+      lenis.raf(time * 1000);
+    };
+
+    // Synchronize Lenis scroll with GSAP's ScrollTrigger (throttled)
+    let scrollUpdateTicking = false;
+    lenis.on('scroll', () => {
+      if (!scrollUpdateTicking) {
+        requestAnimationFrame(() => {
+          ScrollTrigger.update();
+          scrollUpdateTicking = false;
+        });
+        scrollUpdateTicking = true;
+      }
+    });
 
     // Add Lenis's requestAnimationFrame to GSAP's ticker
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
+    gsap.ticker.add(rafCallback);
 
-    // Turn off GSAP lag smoothing to prevent stuttering
+    // Disable lag smoothing to sync with Lenis
     gsap.ticker.lagSmoothing(0);
 
     return () => {
       lenis.destroy();
-      gsap.ticker.remove((time) => {
-        lenis.raf(time * 1000);
-      });
+      gsap.ticker.remove(rafCallback);
+      ScrollTrigger.refresh();
     };
   }, []);
 

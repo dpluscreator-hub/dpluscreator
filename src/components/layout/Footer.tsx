@@ -41,7 +41,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="tel:+916265213360"
+                href="tel:+917693063186"
                 className="group w-11 h-11 bg-white/10 rounded-full flex items-center justify-center hover:bg-primary hover:scale-110 transition-all duration-300"
               >
                 <svg className="w-5 h-5 text-white group-hover:text-dark transition-colors" fill="currentColor" viewBox="0 0 24 24">
@@ -78,10 +78,10 @@ export default function Footer() {
             <ul className="space-y-3 text-gray-400">
               <li>
                 <a
-                  href="tel:+916265213360"
+                  href="tel:+917693063186"
                   className="hover:text-primary transition-colors flex items-center gap-2 group"
                 >
-                  <span className="group-hover:translate-x-1 transition-transform">+91 6265213360</span>
+                  <span className="group-hover:translate-x-1 transition-transform">+91 7693063186</span>
                 </a>
               </li>
               <li>

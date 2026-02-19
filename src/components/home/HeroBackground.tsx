@@ -8,8 +8,18 @@ export default function HeroBackground() {
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    
+    let timeoutId: number;
+    const debouncedResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(checkMobile, 150);
+    };
+    
+    window.addEventListener('resize', debouncedResize, { passive: true });
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   return (

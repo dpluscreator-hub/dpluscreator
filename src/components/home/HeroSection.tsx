@@ -8,7 +8,9 @@ import VideoModal from "@/components/VideoModal";
 import BookMeetingModal from "@/components/BookMeetingModal";
 import HeroBackground from "./HeroBackground";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function HeroSection() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -19,8 +21,18 @@ export default function HeroSection() {
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    
+    let timeoutId: number;
+    const debouncedResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(checkMobile, 150);
+    };
+    
+    window.addEventListener('resize', debouncedResize, { passive: true });
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   useEffect(() => {
@@ -30,13 +42,12 @@ export default function HeroSection() {
       gsap.to(contentRef.current, {
         scale: isMobile ? 0.95 : 0.9,
         y: isMobile ? 30 : 60,
-        duration: isMobile ? 1 : 1.2,
-        ease: "power2.out",
+        ease: "none",
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
           end: isMobile ? "60% top" : "80% top",
-          scrub: isMobile ? 0.8 : 1,
+          scrub: isMobile ? 0.5 : 0.8, // Reduced for faster response
         },
       });
     }, sectionRef);

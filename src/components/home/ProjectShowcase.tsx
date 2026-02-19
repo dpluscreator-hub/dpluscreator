@@ -6,7 +6,9 @@ import { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const workCategories = [
   {
@@ -99,8 +101,18 @@ export default function ProjectShowcase() {
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    
+    let timeoutId: number;
+    const debouncedResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(checkMobile, 150);
+    };
+    
+    window.addEventListener('resize', debouncedResize, { passive: true });
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   // Header parallax effect - disabled on mobile
@@ -177,7 +189,7 @@ export default function ProjectShowcase() {
                   trigger: card,
                   start: "top bottom",
                   end: "bottom top",
-                  scrub: 2,
+                  scrub: 1, // Reduced for faster response
                 },
               }
             );

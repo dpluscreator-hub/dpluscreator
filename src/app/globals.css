@@ -18,9 +18,15 @@
       url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E");
     background-repeat: repeat;
     min-height: 100vh;
+    /* Fast scroll optimizations */
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
   }
   html {
     scroll-behavior: auto !important; /* Let GSAP/Lenis handle smoothness */
+  }
+  html.scroll-smooth {
+    scroll-behavior: auto !important; /* Override Next.js default */
   }
   
   /* Better heading rendering */
@@ -91,6 +97,14 @@
   
   /* GPU Acceleration for smoother animations */
   .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Optimize scrolling performance */
+  .scroll-optimized {
+    will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
   }

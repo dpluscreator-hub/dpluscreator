@@ -83,7 +83,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en">
       <body className={`${inter.variable} ${spaceGrotesk.variable} ${poppins.variable} font-sans antialiased text-dark`}>
         <SmoothScroll />
         <Navbar />
