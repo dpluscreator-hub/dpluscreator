@@ -47,7 +47,7 @@ export default function HeroSection() {
           trigger: sectionRef.current,
           start: "top top",
           end: isMobile ? "60% top" : "80% top",
-          scrub: isMobile ? 0.5 : 0.8, // Reduced for faster response
+          scrub: isMobile ? 0.2 : 1, // Reduced for faster response
         },
       });
     }, sectionRef);
@@ -59,7 +59,7 @@ export default function HeroSection() {
     <>
       <section 
         ref={sectionRef}
-        className="min-h-[45vh] md:min-h-[75vh] relative overflow-hidden pb-4 md:pb-6 pt-20 md:pt-0"
+        className="min-h-[45vh]  md:min-h-[75vh] relative overflow-hidden pb-4 md:pb-6 pt-20 md:pt-0"
       >
         <div className="absolute inset-0 hero-gradient"></div>
 

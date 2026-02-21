@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Poppins } from "next/font/google";
-import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import Navbar from "@/components/layout/Navbar";
+import type { Metadata } from "next";
+import { Inter, Poppins, Space_Grotesk } from "next/font/google";
 import { Toaster } from "sonner";
-import { SmoothScroll } from "@/components/ui/SmoothScroll";
+import "./globals.css";
+import {ReactLenis} from "lenis/react"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -85,21 +85,27 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${spaceGrotesk.variable} ${poppins.variable} font-sans antialiased text-dark`}>
-        <SmoothScroll />
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: '#1A1A1A',
-              color: '#fff',
-              border: '1px solid rgba(245, 166, 35, 0.2)',
-            },
-          }}
-        />
-        <div id="modal-root" />
+
+        <ReactLenis root>
+          {/* <SmoothScroll /> */}
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: '#1A1A1A',
+                color: '#fff',
+                border: '1px solid rgba(245, 166, 35, 0.2)',
+              },
+            }}
+          />
+          <div id="modal-root" />
+
+        </ReactLenis>
+
+
       </body>
     </html>
   );
